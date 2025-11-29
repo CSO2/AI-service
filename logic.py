@@ -99,6 +99,39 @@ def generate_build_suggestion(query: str) -> Dict[str, Any]:
     }
 
 def generate_chat_response(message: str) -> str:
+    lower_message = message.lower()
+    
+    # Check for product categories
+    if 'cpu' in lower_message or 'processor' in lower_message:
+        products = [p for p in MOCK_PRODUCTS if p['subcategory'] == 'CPU']
+        product_names = ", ".join([p['name'] for p in products[:3]])
+        return f"We have some great CPUs available, including: {product_names}. Would you like to see more details?"
+        
+    if 'gpu' in lower_message or 'graphics card' in lower_message:
+        products = [p for p in MOCK_PRODUCTS if p['subcategory'] == 'GPU']
+        product_names = ", ".join([p['name'] for p in products[:3]])
+        return f"Check out our latest GPUs: {product_names}. I can help you find the right one for your build."
+        
+    if 'motherboard' in lower_message:
+        products = [p for p in MOCK_PRODUCTS if p['subcategory'] == 'Motherboard']
+        product_names = ", ".join([p['name'] for p in products[:3]])
+        return f"We stock top-tier motherboards like: {product_names}."
+        
+    if 'ram' in lower_message or 'memory' in lower_message:
+        products = [p for p in MOCK_PRODUCTS if p['subcategory'] == 'RAM']
+        product_names = ", ".join([p['name'] for p in products[:3]])
+        return f"Upgrade your memory with: {product_names}."
+
+    if 'storage' in lower_message or 'ssd' in lower_message:
+        products = [p for p in MOCK_PRODUCTS if p['subcategory'] == 'Storage']
+        product_names = ", ".join([p['name'] for p in products[:3]])
+        return f"Fast storage options available: {product_names}."
+
+    # General help
+    if 'help' in lower_message:
+        return "I can help you find products like CPUs, GPUs, Motherboards, RAM, and Storage. Just ask me about them!"
+
+    # Default random responses for other queries
     bot_responses = [
         "Thanks for your message! I'm here to help with any questions about our products.",
         "That's a great question! Let me connect you with a specialist who can help.",
