@@ -10,3 +10,6 @@ __pycache__/
 *.log
 # Local .env
 .env
+
+# IDEs
+AI-service.iml
