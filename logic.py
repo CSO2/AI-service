@@ -1,11 +1,33 @@
 import re
 import random
 import os
+import logging
 from typing import List, Dict, Any
 import requests
 
+# Configure logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
 # Product Catalog Service URL - can be overridden by environment variable
 CATALOG_SERVICE_URL = os.getenv("PRODUCT_CATALOGUE_SERVICE_URL", "http://localhost:8082")
+
+# Gemini Integration (optional)
+USE_GEMINI = os.getenv("USE_GEMINI", "false").lower() == "true"
+GEMINI_API_KEY = os.getenv("GEMINI_API_KEY", "")
+GEMINI_MODEL = os.getenv("GEMINI_MODEL", "gemini-1.5-flash")
+
+# Initialize Gemini if enabled
+genai_model = None
+if USE_GEMINI and GEMINI_API_KEY:
+    try:
+        import google.generativeai as genai
+        genai.configure(api_key=GEMINI_API_KEY)
+        genai_model = genai.GenerativeModel(GEMINI_MODEL)
+        logger.info(f"Gemini integration enabled with model: {GEMINI_MODEL}")
+    except Exception as e:
+        logger.warning(f"Failed to initialize Gemini: {e}")
+        genai_model = None
 
 def fetch_products_from_catalog() -> List[Dict[str, Any]]:
     """Fetch products from the Product Catalog Service."""
@@ -170,9 +192,10 @@ def generate_build_suggestion(query: str) -> Dict[str, Any]:
     }
 
 def generate_chat_response(message: str) -> str:
+    """Generate a chat response. Uses Gemini if configured, otherwise rule-based."""
     lower_message = message.lower()
     
-    # Fetch products from catalog
+    # Fetch products from catalog for context
     products = fetch_products_from_catalog()
     
     def get_subcategory(p):
@@ -185,6 +208,29 @@ def generate_chat_response(message: str) -> str:
             return p.get('name', '')
         return getattr(p, 'name', '')
     
+    # Try Gemini if available
+    if genai_model:
+        try:
+            # Build product context
+            product_summary = []
+            for p in products[:20]:  # Limit to 20 products for context
+                product_summary.append(f"- {get_name(p)} ({get_subcategory(p)})")
+            
+            prompt = f"""You are a helpful PC building assistant for CSO2, a computer hardware store.
+Available products include:
+{chr(10).join(product_summary)}
+
+Customer message: {message}
+
+Provide a helpful, concise response about PC building or our products. Keep responses under 100 words."""
+            
+            response = genai_model.generate_content(prompt)
+            if response and response.text:
+                return response.text.strip()
+        except Exception as e:
+            logger.warning(f"Gemini generation failed, falling back to rule-based: {e}")
+    
+    # Rule-based fallback
     # Check for product categories
     if 'cpu' in lower_message or 'processor' in lower_message:
         cpu_products = [p for p in products if get_subcategory(p) and 'CPU' in get_subcategory(p).upper()]

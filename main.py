@@ -2,7 +2,12 @@ from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
 from typing import Optional, List, Any
 from logic import generate_build_suggestion, generate_chat_response
+from dotenv import load_dotenv
 import uvicorn
+import os
+
+# Load environment variables from .env file
+load_dotenv()
 
 app = FastAPI(title="AI Service", description="Service for AI features like Builder Bot and Chat", version="1.0.0")
 
@@ -38,4 +43,5 @@ def builder_bot(request: BuilderBotRequest):
     return BuilderBotResponse(**result)
 
 if __name__ == "__main__":
-    uvicorn.run("main:app", host="0.0.0.0", port=8089, reload=True)
+    port = int(os.getenv("PORT", "8089"))
+    uvicorn.run("main:app", host="0.0.0.0", port=port, reload=True)
