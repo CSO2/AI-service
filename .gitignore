@@ -13,3 +13,6 @@ __pycache__/
 
 # IDEs
 AI-service.iml
+# Ignore all .md files except README.md
+*.md
+!README.md
