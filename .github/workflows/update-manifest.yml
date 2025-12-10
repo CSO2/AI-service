@@ -85,4 +85,18 @@ jobs:
           git commit -m "chore(${SERVICE_NAME}): update image to ${{ steps.info.outputs.branch }}-${{ steps.info.outputs.sha }}" \
                      -m "Triggered by: ${{ github.event.workflow_run.html_url }}"
           
-          git push origin ${{ steps.info.outputs.branch }}
+          # Retry loop for race conditions
+          MAX_RETRIES=5
+          for ((i=1; i<=MAX_RETRIES; i++)); do
+            echo "🔄 Attempt $i of $MAX_RETRIES to push changes..."
+            git pull --rebase origin ${{ steps.info.outputs.branch }}
+            if git push origin ${{ steps.info.outputs.branch }}; then
+              echo "✅ Push successful!"
+              exit 0
+            fi
+            echo "⚠️ Push failed, retrying in roughly 5 seconds..."
+            sleep $((RANDOM % 5 + 3))
+          done
+          
+          echo "❌ Failed to push changes after $MAX_RETRIES attempts."
+          exit 1
