@@ -29,7 +29,6 @@ if USE_GEMINI and GEMINI_API_KEY:
         logger.warning(f"Failed to initialize Gemini: {e}")
         genai_model = None
 
-
 def fetch_products_from_catalog() -> List[Dict[str, Any]]:
     """Fetch products from the Product Catalog Service."""
     try:
@@ -46,7 +45,6 @@ def fetch_products_from_catalog() -> List[Dict[str, Any]]:
     except Exception as e:
         print(f"Error fetching products from catalog: {e}")
         return get_mock_products()
-
 
 def get_mock_products() -> List[Dict[str, Any]]:
     """Fallback mock product data if catalog service is unavailable."""
@@ -65,7 +63,6 @@ def get_mock_products() -> List[Dict[str, Any]]:
         {"id": "12", "name": "NZXT Kraken Z73", "subcategory": "Cooler", "price": 279.99, "brand": "NZXT", "specs": {}},
         {"id": "13", "name": "Lian Li O11 Dynamic", "subcategory": "Case", "price": 149.99, "brand": "Lian Li", "specs": {"formFactor": "ATX"}},
     ]
-
 
 def generate_build_suggestion(query: str) -> Dict[str, Any]:
     lower_query = query.lower()
@@ -169,7 +166,6 @@ def generate_build_suggestion(query: str) -> Dict[str, Any]:
 
     # Filter out None values if any lists were empty
     selected_components = [c for c in selected_components if c]
-
     
     # Normalize component format for response
     normalized_components = []
@@ -194,7 +190,6 @@ def generate_build_suggestion(query: str) -> Dict[str, Any]:
             "totalPrice": total_price
         }
     }
-
 
 def generate_chat_response(message: str) -> str:
     """Generate a chat response. Uses Gemini if configured, otherwise rule-based."""
